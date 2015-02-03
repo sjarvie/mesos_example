@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration strict="true" status="OFF" monitorInterval="30"  shutdownHook="disable">
+
+    <loggers>
+
+        <logger name="com.zillabyte" level="INFO" />
+
+        <root level="info">
+            <appender-ref ref="STDOUT"/>
+        </root>
+
+    </loggers>
+
+</configuration>
