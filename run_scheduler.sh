@@ -1,5 +1,9 @@
 # !/bin/bash
 echo "starting scheduler"
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-#update the path to point to jar
-java -cp /Users/sjarvie/mesos_example/target/Mesos-0.0.1-SNAPSHOT.jar org.zillabyte.MesosScheduler localhost:5050 /Users/sjarvie/mesos_example/run_executor.sh
+export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos-0.20.1.dylib
+
+mvn clean compile exec:java \
+  -DskipTests \
+  -Pmvn \
+  -Dexec.mainClass="org.zillabyte.MesosScheduler" \
+  -Dexec.args="localhost:5050 /Users/sjarvie/mesos_example/run_executor.sh"

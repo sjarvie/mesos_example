@@ -15,8 +15,6 @@ import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
@@ -25,9 +23,6 @@ public class MesosScheduler implements Scheduler {
 
   private final int CPUS = 1;
   private final int MEM = 128;
-
-  /** Logger. */
-  private static final Logger logger = LoggerFactory.getLogger(MesosScheduler.class);
 
   /** Number of instances to run. */
   private final int desiredInstances;
@@ -47,10 +42,10 @@ public class MesosScheduler implements Scheduler {
   }
 
   public void resourceOffers(SchedulerDriver driver, List<Offer> offers) {
-    logger.info("resourceOffers() with {} offers", offers.size());
-
+    System.out.println(offers.size() + " offers available");
+    
     for (Protos.Offer offer : offers) {
-
+      
       List<Protos.TaskInfo> tasks = new ArrayList<>();
       if (runningInstances.size() + pendingInstances.size() < desiredInstances) {
 
@@ -58,7 +53,7 @@ public class MesosScheduler implements Scheduler {
         Protos.TaskID taskId = Protos.TaskID.newBuilder()
             .setValue(Integer.toString(taskIDGenerator.incrementAndGet())).build();
 
-        logger.info("Launching task {}", taskId.getValue());
+        System.out.println("Launching task " + taskId.getValue());
         pendingInstances.add(taskId.getValue());
 
         /** Create the Task */
@@ -66,17 +61,10 @@ public class MesosScheduler implements Scheduler {
             .setName("task " + taskId.getValue())
             .setTaskId(taskId)
             .setSlaveId(offer.getSlaveId())
-            .setExecutor(MesosExecutor.getExecutorCommand())
-            .addResources(Protos.Resource.newBuilder()
-                .setName("cpus")
-                .setType(Protos.Value.Type.SCALAR)
-                .setScalar(Protos.Value.Scalar.newBuilder().setValue(CPUS)))
-                .addResources(Protos.Resource.newBuilder()
-                    .setName("mem")
-                    .setType(Protos.Value.Type.SCALAR)
-                    .setScalar(Protos.Value.Scalar.newBuilder().setValue(MEM)))
-                    .build();
-
+            .setExecutor(MesosExecutor.getExecutorScript())
+            .addResources(MesosHelper.scalarResouce("cpus", CPUS))
+            .addResources(MesosHelper.scalarResouce("mem", MEM))
+            .build();
         tasks.add(task);
       }
       driver.launchTasks(Lists.newArrayList(offer.getId()), tasks);
@@ -85,11 +73,31 @@ public class MesosScheduler implements Scheduler {
   }
 
   public void statusUpdate(SchedulerDriver driver, TaskStatus status) {
-    logger.info("Received status update " + status.getState());
+    System.out.println("Received status update " + status.getState());
+    final String taskId = status.getTaskId().getValue();
+
+    switch (status.getState()) {
+    case TASK_RUNNING:
+      pendingInstances.remove(taskId);
+      runningInstances.add(taskId);
+      break;
+    case TASK_FAILED:
+    case TASK_FINISHED:
+      pendingInstances.remove(taskId);
+      runningInstances.remove(taskId);
+      break;
+    default:
+      break;
   }
 
+  }
+  
+  
+
   public void registered(SchedulerDriver driver, FrameworkID frameworkID, MasterInfo masterInfo) {
-    logger.info("Registered " + frameworkID);
+    System.out.println("Registered " + frameworkID);
+    
+    
   }
 
 

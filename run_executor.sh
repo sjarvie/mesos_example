@@ -1,5 +1,9 @@
 #!/bin/sh
 echo "starting Executor"
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-#update the path to point to jar
-java -cp /Users/sjarvie/mesos_example/target/Mesos-0.0.1-SNAPSHOT.jar org.zillabyte.MesosExecutor
+export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos-0.20.1.dylib
+
+cd /Users/sjarvie/mesos_example/
+mvn clean compile exec:java \
+  -DskipTests \
+  -Pmvn \
+  -Dexec.mainClass="org.zillabyte.MesosExecutor" 

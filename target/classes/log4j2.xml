@@ -3,8 +3,7 @@
 
     <loggers>
 
-        <logger name="com.zillabyte" level="INFO" />
-
+        <logger name="org.zillabyte" level="INFO" />
         <root level="info">
             <appender-ref ref="STDOUT"/>
         </root>
